@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>7daysOddsCalculator</title>
+  <style>
+    :root{
+      --bg:#ffffff;
+      --card:#f9fbfd;
+      --accent:#3b82f6;
+      --muted:#6b7280;
+      --border:#bfdbfe;
+      --radius:12px;
+    }
+    body{
+      margin:0;
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color:#111827;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:28px;
+    }
+    .wrap{
+      width:100%;
+      max-width:920px;
+      background: var(--bg);
+      border: 2px solid var(--border);
+      border-radius:var(--radius);
+      padding:22px;
+      display:grid;
+      grid-template-columns: 1fr 360px;
+      gap:18px;
+    }
+    header{
+      grid-column:1/-1;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      text-align:center;
+      gap:12px;
+      position: relative;
+    }
+    header img{
+      max-height:130px;
+      margin-bottom:8px;
+      position: relative;
+      z-index: 2;
+    }
+    header::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--accent);
+      z-index: 1;
+      transform: translateY(-50%);
+      box-shadow:
+        0 0 8px var(--accent),
+        0 0 15px var(--accent),
+        0 0 20px var(--accent);
+      border-radius: 2px;
+    }
+    h1{ font-size:18px; margin:0; letter-spacing:0.2px; z-index: 2; position: relative;}
+    .panel{
+      background:var(--card);
+      padding:16px;
+      border-radius:10px;
+      border:1px solid var(--border);
+    }
+    label{
+      display:block;
+      font-size:13px;
+      margin-bottom:6px;
+      color:var(--muted);
+    }
+    .row{ margin-bottom:12px; }
+    input[type="number"], input[type="text"]{
+      width:100%;
+      box-sizing:border-box;
+      padding:8px 10px;
+      border-radius:8px;
+      border:1px solid var(--border);
+      background:white;
+      color:inherit;
+      font-size:14px;
+    }
+    button{
+      background:var(--accent);
+      color:white;
+      border:none;
+      padding:10px 14px;
+      border-radius:10px;
+      font-weight:600;
+      cursor:pointer;
+    }
+    .results{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .result-item{
+      background:white;
+      padding:12px;
+      border-radius:8px;
+      border:1px solid var(--border);
+      font-size:14px;
+    }
+    .big{
+      font-size:20px;
+      font-weight:700;
+      color:var(--accent);
+    }
+    .muted{ color:var(--muted); font-size:13px; }
+    footer{ grid-column:1/-1; text-align:center; color:var(--muted); font-size:13px; margin-top:6px;}
+    @media (max-width:880px){
+      .wrap{ grid-template-columns: 1fr; padding:16px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap" role="main" aria-label="Win probability calculator">
+    <header>
+      <img src="5369D8BE-74A1-4220-9AD4-76B1AD192474.jpeg" alt="7 Days Performance Logo">
+      <h1>7daysOddsCalculator</h1>
+    </header>
+
+    <!-- Left: Inputs -->
+    <section class="panel" aria-labelledby="inputs-heading">
+      <h2 id="inputs-heading" style="margin-top:0;font-size:15px">Inputs</h2>
+
+      <div class="row">
+        <label for="totalTickets">Total tickets in pool</label>
+        <input id="totalTickets" type="number" min="1" step="1" placeholder="0" />
+      </div>
+
+      <div class="row">
+        <label for="totalPrizes">Total prizes available</label>
+        <input id="totalPrizes" type="number" min="0" step="1" placeholder="0" />
+      </div>
+
+      <div class="row">
+        <label for="ticketPrice">Price per ticket (£)</label>
+        <input id="ticketPrice" type="text" inputmode="decimal" placeholder="0" />
+      </div>
+
+      <div class="row">
+        <label for="ticketsBought">Tickets you plan to buy</label>
+        <input id="ticketsBought" type="number" min="0" step="1" placeholder="0" />
+      </div>
+
+      <div class="row" style="display:flex;gap:8px;">
+        <button id="calc">Calculate</button>
+        <button id="reset" style="background:#e5e7eb;color:#111;border:1px solid var(--border);">Reset</button>
+      </div>
+    </section>
+
+    <!-- Right: Results -->
+    <aside class="panel" aria-labelledby="results-heading">
+      <h2 id="results-heading" style="margin-top:0;font-size:15px">Results</h2>
+
+      <div class="results" id="resultsArea">
+        <div class="result-item">
+          <div class="muted">Chance of winning at least one prize</div>
+          <div id="chance" class="big">—</div>
+        </div>
+
+        <div class="result-item">
+          <div class="muted">Total spend</div>
+          <div id="cost" class="big">—</div>
+        </div>
+
+        <div class="result-item">
+          <div class="muted">Expected number of wins</div>
+          <div id="expectedWins" class="big">—</div>
+        </div>
+      </div>
+    </aside>
+
+    <footer>
+      Tip: If your chance is low, you may need far more tickets for meaningful odds.
+    </footer>
+  </main>
+
+  <script>
+    function fmt(num, digits = 6){
+      if (!isFinite(num)) return "—";
+      return Number(num).toLocaleString(undefined, {maximumFractionDigits: digits});
+    }
+
+    function calculate(inputs){
+      const totalTickets = Math.max(1, Math.floor(Number(inputs.totalTickets)));
+      const totalPrizes = Math.max(0, Math.floor(Number(inputs.totalPrizes)));
+      const ticketPrice = Math.max(0, Number(inputs.ticketPrice));
+      const ticketsBought = Math.max(0, Math.floor(Number(inputs.ticketsBought)));
+
+      if (totalPrizes === 0){
+        return {pWin:0, cost:ticketsBought*ticketPrice, expectedWins:0};
+      }
+
+      const pSingle = totalPrizes / totalTickets;
+      const pWin = 1 - Math.pow(1 - pSingle, ticketsBought);
+      const expectedWins = ticketsBought * pSingle;
+
+      return {pWin, cost:ticketsBought*ticketPrice, expectedWins};
+    }
+
+    const els = {
+      totalTickets: document.getElementById('totalTickets'),
+      totalPrizes: document.getElementById('totalPrizes'),
+      ticketPrice: document.getElementById('ticketPrice'),
+      ticketsBought: document.getElementById('ticketsBought'),
+      chance: document.getElementById('chance'),
+      cost: document.getElementById('cost'),
+      expectedWins: document.getElementById('expectedWins')
+    };
+
+    function updateUI(){
+      const r = calculate({
+        totalTickets: els.totalTickets.value,
+        totalPrizes: els.totalPrizes.value,
+        ticketPrice: els.ticketPrice.value,
+        ticketsBought: els.ticketsBought.value
+      });
+      els.chance.textContent = (r.pWin*100).toFixed(6) + "%";
+      els.cost.textContent = "£" + fmt(r.cost, 2);
+      els.expectedWins.textContent = fmt(r.expectedWins, 6);
+    }
+
+    document.getElementById('calc').addEventListener('click', e => { e.preventDefault(); updateUI(); });
+    document.getElementById('reset').addEventListener('click', e => {
+      e.preventDefault();
+      els.totalTickets.value = "";
+      els.totalPrizes.value = "";
+      els.ticketPrice.value = "";
+      els.ticketsBought.value = "";
+      els.chance.textContent = "—";
+      els.cost.textContent = "—";
+      els.expectedWins.textContent = "—";
+    });
+  </script>
+</body>
+</html>
